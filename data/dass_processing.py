@@ -26,6 +26,9 @@ THRESHOLDS = {
 }
 
 MAX_SCORE = 42   # Maximum possible for each subscale (7 items × 3 × 2)
+# (EBEN REVIEW) Minor: could derive this as 7 * 3 * 2 to make the relationship explicit rather than a hardcoded literal.
+
+
 
 # Label mapping for the model
 LABEL_MAP = {
@@ -62,7 +65,10 @@ def compute_subscale_scores(answers: Dict[str, int]) -> Dict[str, int]:
     depression_score = sum(
         answers.get(f"q{i}", 0) for i in DEPRESSION_ITEMS
     ) * 2
-
+# REVIEW (EBENEZER OKUNOLA) No validation that answer values are in range 0–3.
+    Suggest raising a ValueError 
+# if any value is outside this range, or clamping with a logged warning
+    
     anxiety_score = sum(
         answers.get(f"q{i}", 0) for i in ANXIETY_ITEMS
     ) * 2
@@ -193,10 +199,12 @@ def process_dass_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
     results = []
     for _, row in df.iterrows():
+        #(EBEN REVIEW)  iterrows() is slow on large DataFrames. Consider vectorizing with df.apply() or numpy operations for performance at scale.
         answers = {f"q{i}": int(row.get(f"q{i}", 0)) for i in range(1, 22)}
         scores  = compute_subscale_scores(answers)
         label, conf = classify_label(scores)
-
+# (EBEN REVIEW) int(NaN) will raise, this will crash on any row with missing data. 
+# Suggest int(row.get(f"q{i}", 0) or 0) or explicit pd.isna() check.
         results.append({
             **scores,
             "label"      : label,
