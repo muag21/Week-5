@@ -44,6 +44,8 @@ class TextPreprocessor:
         self.index_to_word : Dict[int, str] = {}
         self.vocab_size    : int = 0
 
+# (EBEN REVIEW)  Docstring elsewhere says "SAVE THIS for inference" but there's no save()/load() method implemented. Suggest adding save_vocab(path) / load_vocab(path) (e.g. pickle or JSON) so this is actually usable in production.
+
     def clean_text(self, text: str) -> str:
         """
         Remove noise from a raw Reddit post.
@@ -72,6 +74,8 @@ class TextPreprocessor:
         # Keep letters, digits, spaces, and apostrophes only
         keep = set(string.ascii_lowercase + string.digits + " '")
         text = "".join(ch if ch in keep else " " for ch in text)
+
+      #  (EBEN REVIEW) This strips all non-ASCII characters (emoji, accented characters, etc.). Probably intentional for this dataset, but worth a comment confirming it's a deliberate design choice, not an oversight.
 
         text = re.sub(r"\s+", " ", text).strip()
         return text
