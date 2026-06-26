@@ -70,7 +70,7 @@ class SignalPreprocessor:
         b, a = signal.butter(order, [low, high], btype="band")
         filtered = signal.filtfilt(b, a, signal_data)
         return filtered
-
+# No check that high < nyquist. If high_freq exceeds Nyquist, this throws an unclear scipy error. Suggest an explicit assert/raise with a clear message.
     def segment_signal(
         self,
         signal_data  : np.ndarray,
@@ -99,7 +99,7 @@ class SignalPreprocessor:
             start += step_size
 
         return windows
-
+# (EBEN REVIEW) Returns an empty list silently when the signal is shorter than one window. Consider logging a warning so this doesn't fail silently downstream.
     def extract_time_features(
         self,
         window: np.ndarray,
@@ -163,6 +163,7 @@ class SignalPreprocessor:
 
         lf_mask = (freqs >= 0.04) & (freqs < 0.15)
         hf_mask = (freqs >= 0.15) & (freqs < 0.40)
+        # (EBEN REVIEW) Needs confirmation: LF/HF ratio is conventionally computed on the RR-interval tachogram (from HRV), not the raw signal's FFT spectrum. Applying it directly to raw ECG/EDA frequency content may not produce a meaningful stress biomarker. Please confirm with whoever spec'd this feature.
 
         lf_power = float(np.sum(fft_power[lf_mask]))
         hf_power = float(np.sum(fft_power[hf_mask]))
